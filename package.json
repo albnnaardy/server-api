@@ -15,5 +15,9 @@
     "prisma": "^6.3.1",
     "vue": "latest",
     "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "typescript": "^5.7.3"
   }
 }
