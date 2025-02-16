@@ -1,0 +1,187 @@
+
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  type      Role     @default(SANTRI)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  teacher Teachers?
+  Santri Santris?
+  parent  Parents?
+}
+
+model Teachers {
+  id        String      @id @default(cuid())
+  name      String
+  userId    String      @unique
+  user      Users       @relation(fields: [userId], references: [id])
+  type      TeacherRole @default(ASATIDZ)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  divisions TeacherDivisions[]
+  classes   TeacherClasses[]
+}
+
+model Divisions {
+  id        String   @id @default(cuid())
+  name      Field
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes  Classes[]
+  teachers TeacherDivisions[]
+}
+
+model TeacherDivisions {
+  id         String   @id @default(cuid())
+  teacherId  String
+  divisionId String
+  role       TeacherRole @default(ASATIDZ)
+  createdAt  DateTime @default(now())
+
+  teacher  Teachers  @relation(fields: [teacherId], references: [id])
+  division Divisions @relation(fields: [divisionId], references: [id])
+
+  @@unique([teacherId, divisionId])
+}
+
+model Classes {
+  id         String    @id @default(cuid())
+  name       String
+  divisionId String
+  division   Divisions @relation(fields: [divisionId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  teachers TeacherClasses[]
+  Santris SantriClasses[]
+}
+
+model TeacherClasses {
+  id        String   @id @default(cuid())
+  teacherId String
+  classId   String
+  createdAt DateTime @default(now())
+
+  teacher Teachers @relation(fields: [teacherId], references: [id])
+  class   Classes  @relation(fields: [classId], references: [id])
+
+  @@unique([teacherId, classId])
+}
+
+model Santris {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String   @unique
+  user      Users    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes SantriClasses[]
+  parent  ParentChildren[]
+}
+
+model SantriClasses {
+  id        String   @id @default(cuid())
+  SantriId String
+  classId   String
+  createdAt DateTime @default(now())
+
+  Santri Santris @relation(fields: [SantriId], references: [id])
+  class   Classes  @relation(fields: [classId], references: [id])
+
+  @@unique([SantriId, classId])
+}
+
+model ParentChildren {
+  id        String   @id @default(cuid())
+  parentId  String
+  SantriId String
+  createdAt DateTime @default(now())
+
+  parent  Parents  @relation(fields: [parentId], references: [id])
+  Santri Santris @relation(fields: [SantriId], references: [id])
+}
+
+model Parents {
+  id       String           @id @default(cuid())
+  userId   String           @unique
+  user     Users            @relation(fields: [userId], references: [id])
+  children ParentChildren[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notifications {
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  message    String
+  type       String   // Misal: "penyemangat", "pengingat", dll.
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  sender     Users    @relation("Sender", fields: [senderId], references: [id])
+  receiver   Users    @relation("Receiver", fields: [receiverId], references: [id])
+}
+
+
+model Evaluations {
+  id         String   @id @default(cuid())
+  SantriId  String
+  teacherId  String
+  field      Field
+  score      Int
+  type       String   // Contoh: "harian", "mingguan", "bulanan"
+  createdAt  DateTime @default(now())
+
+  Santri    Santris @relation(fields: [SantriId], references: [id])
+  teacher    Teachers @relation(fields: [teacherId], references: [id])
+}
+
+model Coupon {
+  id         String     @id @default(cuid())
+  SantriId  String
+  value      Int
+  expiresAt  DateTime
+  isUsed     Boolean    @default(false)
+  
+  Santri    Santris   @relation(fields: [SantriId], references: [id])
+}
+
+enum SantriCategory {
+  REGULER
+  AKSELERASI
+}
+
+enum Field {
+  TAHFIZH
+  IT
+  KARAKTER
+  BAHASA
+}
+
+enum Role {
+  ADMIN
+  KADIV
+  ASATIDZ
+  SANTRI
+  WALSAN
+}
+
+enum TeacherRole {
+  ASATIDZ
+  KADIV
+}
