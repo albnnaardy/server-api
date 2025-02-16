@@ -6,7 +6,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "../.output/server"
+    "outDir": "../.output/server",
+   "types": ["@nuxt/types", "node"],
+
+    "paths": {
+      "#app": ["./.nuxt/types/app"],
+      "#imports": ["./.nuxt/types/imports"],
+      "#nitro": ["./.nuxt/types/nitro"],
+      "#plugins": ["./.nuxt/types/plugins"]
+    }
   },
   "include": ["api/**/*.ts"],
   "exclude": ["node_modules"]

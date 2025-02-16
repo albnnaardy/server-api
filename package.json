@@ -10,13 +10,18 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxt/types": "^2.18.1",
+    "@nuxt/typescript-build": "^3.0.2",
     "@prisma/client": "^6.3.1",
+    "axios": "^1.7.9",
+    "h3": "^1.15.0",
     "nuxt": "^3.15.4",
     "prisma": "^6.3.1",
     "vue": "latest",
     "vue-router": "latest"
   },
   "devDependencies": {
+    "@types/axios": "^0.9.36",
     "@types/node": "^22.13.4",
     "typescript": "^5.7.3"
   }
