@@ -1,6 +1,3 @@
-
-
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -15,22 +12,26 @@ model Users {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teacher Teachers?
-  Santri Santris?
-  parent  Parents?
+  teacher   Teachers?
+  santri    Santris?
+  parent    Parents?
+
+  sentNotifications     Notifications[] @relation("Sender")
+  receivedNotifications Notifications[] @relation("Receiver")
 }
 
 model Teachers {
   id        String      @id @default(cuid())
   name      String
   userId    String      @unique
-  user      Users       @relation(fields: [userId], references: [id])
+  user      Users       @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      TeacherRole @default(ASATIDZ)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
   divisions TeacherDivisions[]
   classes   TeacherClasses[]
+  evaluations Evaluations[]
 }
 
 model Divisions {
@@ -50,8 +51,8 @@ model TeacherDivisions {
   role       TeacherRole @default(ASATIDZ)
   createdAt  DateTime @default(now())
 
-  teacher  Teachers  @relation(fields: [teacherId], references: [id])
-  division Divisions @relation(fields: [divisionId], references: [id])
+  teacher  Teachers  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  division Divisions @relation(fields: [divisionId], references: [id], onDelete: Cascade)
 
   @@unique([teacherId, divisionId])
 }
@@ -60,12 +61,12 @@ model Classes {
   id         String    @id @default(cuid())
   name       String
   divisionId String
-  division   Divisions @relation(fields: [divisionId], references: [id])
+  division   Divisions @relation(fields: [divisionId], references: [id], onDelete: Cascade)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   teachers TeacherClasses[]
-  Santris SantriClasses[]
+  santris  SantriClasses[]
 }
 
 model TeacherClasses {
@@ -74,8 +75,8 @@ model TeacherClasses {
   classId   String
   createdAt DateTime @default(now())
 
-  teacher Teachers @relation(fields: [teacherId], references: [id])
-  class   Classes  @relation(fields: [classId], references: [id])
+  teacher Teachers @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([teacherId, classId])
 }
@@ -84,40 +85,43 @@ model Santris {
   id        String   @id @default(cuid())
   name      String
   userId    String   @unique
-  user      Users    @relation(fields: [userId], references: [id])
+  user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  SantriCategory @default(REGULER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  classes SantriClasses[]
-  parent  ParentChildren[]
+  classes  SantriClasses[]
+  parents  ParentChildren[]
+  coupons  Coupon[]
+  evaluations Evaluations[]
 }
 
 model SantriClasses {
   id        String   @id @default(cuid())
-  SantriId String
+  santriId  String
   classId   String
   createdAt DateTime @default(now())
 
-  Santri Santris @relation(fields: [SantriId], references: [id])
-  class   Classes  @relation(fields: [classId], references: [id])
+  santri Santris @relation(fields: [santriId], references: [id], onDelete: Cascade)
+  class  Classes @relation(fields: [classId], references: [id], onDelete: Cascade)
 
-  @@unique([SantriId, classId])
+  @@unique([santriId, classId])
 }
 
 model ParentChildren {
   id        String   @id @default(cuid())
   parentId  String
-  SantriId String
+  santriId  String
   createdAt DateTime @default(now())
 
-  parent  Parents  @relation(fields: [parentId], references: [id])
-  Santri Santris @relation(fields: [SantriId], references: [id])
+  parent Parents @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  santri Santris @relation(fields: [santriId], references: [id], onDelete: Cascade)
 }
 
 model Parents {
   id       String           @id @default(cuid())
   userId   String           @unique
-  user     Users            @relation(fields: [userId], references: [id])
+  user     Users            @relation(fields: [userId], references: [id], onDelete: Cascade)
   children ParentChildren[]
 
   createdAt DateTime @default(now())
@@ -129,36 +133,35 @@ model Notifications {
   senderId   String
   receiverId String
   message    String
-  type       String   // Misal: "penyemangat", "pengingat", dll.
+  type       String
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  sender     Users    @relation("Sender", fields: [senderId], references: [id])
-  receiver   Users    @relation("Receiver", fields: [receiverId], references: [id])
+  sender   Users @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver Users @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 }
 
-
 model Evaluations {
-  id         String   @id @default(cuid())
-  SantriId  String
-  teacherId  String
-  field      Field
-  score      Int
-  type       String   // Contoh: "harian", "mingguan", "bulanan"
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  santriId  String
+  teacherId String
+  field     Field
+  score     Int
+  type      String
+  createdAt DateTime @default(now())
 
-  Santri    Santris @relation(fields: [SantriId], references: [id])
-  teacher    Teachers @relation(fields: [teacherId], references: [id])
+  santri  Santris  @relation(fields: [santriId], references: [id], onDelete: Cascade)
+  teacher Teachers @relation(fields: [teacherId], references: [id], onDelete: Cascade)
 }
 
 model Coupon {
-  id         String     @id @default(cuid())
-  SantriId  String
-  value      Int
-  expiresAt  DateTime
-  isUsed     Boolean    @default(false)
-  
-  Santri    Santris   @relation(fields: [SantriId], references: [id])
+  id        String   @id @default(cuid())
+  santriId  String
+  value     Int
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+
+  santri Santris @relation(fields: [santriId], references: [id], onDelete: Cascade)
 }
 
 enum SantriCategory {
